@@ -84,15 +84,17 @@ function WeddingInvitation() {
   }
   async function submitRsvp(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setRsvpStatus("Đang gửi...");
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     const { error } = await supabase.from("wedding_rsvps").insert({ guest_name: String(form.get("name") ?? ""), phone: String(form.get("phone") ?? "") || null, guest_count: Number(form.get("count") ?? 1), vegetarian: form.get("vegetarian") === "on", children: form.get("children") === "on", note: String(form.get("note") ?? "") || null });
-    if (error) setRsvpStatus(error.message); else { setRsvpStatus("Cảm ơn bạn! Hẹn gặp bạn trong ngày vui của chúng mình."); event.currentTarget.reset(); }
+    if (error) setRsvpStatus(error.message); else { setRsvpStatus("Cảm ơn bạn! Hẹn gặp bạn trong ngày vui của chúng mình."); formElement.reset(); }
   }
   async function submitWish(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setWishStatus("Đang gửi...");
-    const form = new FormData(event.currentTarget); const guest_name = String(form.get("wishName") ?? ""); const message = String(form.get("message") ?? "");
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement); const guest_name = String(form.get("wishName") ?? ""); const message = String(form.get("message") ?? "");
     const { data, error } = await supabase.from("wedding_wishes").insert({ guest_name, message }).select("id,guest_name,message").single();
-    if (error) setWishStatus(error.message); else if (data) { setWishes((current) => [data, ...current]); setWishStatus("Lời chúc đã được gửi đến hai chúng mình."); event.currentTarget.reset(); }
+    if (error) setWishStatus(error.message); else if (data) { setWishes((current) => [data, ...current]); setWishStatus("Lời chúc đã được gửi đến hai chúng mình."); formElement.reset(); }
   }
 
   return <main className="paper-texture min-h-screen text-foreground">
