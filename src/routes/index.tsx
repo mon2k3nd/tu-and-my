@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { CalendarPlus, ChevronUp, Heart, MapPin, Maximize2, Music2, Navigation, Pause, Phone, Play, Send, Share2, Sparkles, X } from "lucide-react";
+import { CalendarPlus, ChevronUp, Heart, MapPin, Maximize2, Music2, Navigation, Pause, Phone, Share2, Sparkles, X } from "lucide-react";
 import QRCode from "qrcode";
 import { supabase } from "@/integrations/supabase/client";
 import img1 from "@/assets/TVT00967.JPG.asset.json";
@@ -41,7 +41,6 @@ function WeddingInvitation() {
   const [qr, setQr] = useState("");
   const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [wishes, setWishes] = useState<Array<{ id: string; guest_name: string; message: string }>>([]);
-  const [rsvpStatus, setRsvpStatus] = useState("");
   const [wishStatus, setWishStatus] = useState("");
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -81,13 +80,6 @@ function WeddingInvitation() {
   function addAppleCalendar() {
     const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "BEGIN:VEVENT", "DTSTART:20261003T030000Z", "DTEND:20261003T050000Z", "SUMMARY:Lễ thành hôn Thảo My & Xuân Tú", "LOCATION:Chợ Gồ, Thôn Thanh Cù, Xã Hiệp Cường, Tỉnh Hưng Yên", "END:VEVENT", "END:VCALENDAR"].join("\r\n");
     const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([ics], { type: "text/calendar" })); a.download = "thao-my-xuan-tu.ics"; a.click(); URL.revokeObjectURL(a.href);
-  }
-  async function submitRsvp(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setRsvpStatus("Đang gửi...");
-    const formElement = event.currentTarget;
-    const form = new FormData(formElement);
-    const { error } = await supabase.from("wedding_rsvps").insert({ guest_name: String(form.get("name") ?? ""), phone: String(form.get("phone") ?? "") || null, guest_count: Number(form.get("count") ?? 1), vegetarian: form.get("vegetarian") === "on", children: form.get("children") === "on", note: String(form.get("note") ?? "") || null });
-    if (error) setRsvpStatus(error.message); else { setRsvpStatus("Cảm ơn bạn! Hẹn gặp bạn trong ngày vui của chúng mình."); formElement.reset(); }
   }
   async function submitWish(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setWishStatus("Đang gửi...");
@@ -158,7 +150,6 @@ function WeddingInvitation() {
 
     <section id="schedule" className="mx-auto max-w-4xl px-6 py-24"><p className="text-xs uppercase tracking-[.24em] text-primary">Chương V · Chương trình</p><h2 className="mt-4 text-5xl">Hai ngày vui,<br/>một lời hẹn</h2><div className="mt-14 space-y-0"><Schedule time="18:00 · 02.10" title="Tiệc mừng tại nhà gái" place="Tư gia nhà gái · Ninh Bình"/><Schedule time="10:00 · 03.10" title="Lễ thành hôn tại nhà trai" place="Tư gia nhà trai · Hưng Yên"/></div><div className="mt-10 flex flex-wrap gap-3"><a href={calendarUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground"><CalendarPlus size={17}/> Google Calendar</a><button type="button" onClick={addAppleCalendar} className="inline-flex items-center gap-2 rounded-full border border-primary px-5 py-3 text-sm font-medium text-primary"><CalendarPlus size={17}/> Apple Calendar</button></div></section>
 
-    <section id="rsvp" className="bg-foreground px-5 py-24 text-primary-foreground"><div className="mx-auto grid max-w-5xl gap-14 md:grid-cols-[.8fr_1.2fr]"><div><p className="text-xs uppercase tracking-[.24em] text-secondary">RSVP</p><h2 className="mt-4 text-5xl">Bạn sẽ đến<br/>chung vui chứ?</h2><p className="mt-6 max-w-sm leading-7 text-primary-foreground/65">Hãy để lại lời hồi đáp để chúng mình chuẩn bị đón bạn thật chu đáo.</p></div><form onSubmit={submitRsvp} className="grid gap-4 sm:grid-cols-2"><Field name="name" label="Tên của bạn" required/><Field name="phone" label="Số điện thoại" inputMode="tel"/><label className="grid gap-2 text-sm">Số khách<select name="count" className="h-12 rounded-sm border border-primary-foreground/20 bg-primary-foreground/5 px-4">{[1,2,3,4,5,6].map(n=><option className="text-foreground" key={n}>{n}</option>)}</select></label><div className="flex items-end gap-5 pb-3 text-sm"><label className="flex items-center gap-2"><input type="checkbox" name="vegetarian"/> Ăn chay</label><label className="flex items-center gap-2"><input type="checkbox" name="children"/> Có trẻ em</label></div><label className="grid gap-2 text-sm sm:col-span-2">Lời nhắn<textarea name="note" maxLength={500} rows={3} className="rounded-sm border border-primary-foreground/20 bg-primary-foreground/5 p-4"/></label><button className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-secondary px-6 font-medium text-secondary-foreground sm:col-span-2" type="submit"><Send size={17}/> Gửi lời hồi đáp</button>{rsvpStatus && <p role="status" className="text-sm text-secondary sm:col-span-2">{rsvpStatus}</p>}</form></div></section>
 
     <section id="wishes" className="mx-auto max-w-5xl px-6 py-24"><div className="text-center"><p className="text-xs uppercase tracking-[.24em] text-primary">Những điều thương mến</p><h2 className="mt-4 text-5xl">Gửi một lời chúc</h2></div><form onSubmit={submitWish} className="mx-auto mt-10 grid max-w-xl gap-3"><Field name="wishName" label="Tên của bạn" required light/><label className="grid gap-2 text-sm">Lời chúc<textarea required name="message" maxLength={500} rows={3} className="rounded-sm border border-border bg-card p-4"/></label><button type="submit" className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-primary px-6 font-medium text-primary-foreground"><Heart size={17}/> Gửi lời chúc</button>{wishStatus && <p role="status" className="text-center text-sm text-primary">{wishStatus}</p>}</form><div className="mx-auto mt-12 grid max-w-2xl gap-3">{wishes.length ? wishes.map(w=><div key={w.id} className="grid grid-cols-[auto_1fr_auto] gap-3 rounded-sm border border-border bg-card p-4"><div className="grid h-10 w-10 place-items-center rounded-full bg-secondary font-display text-lg text-secondary-foreground">{w.guest_name.charAt(0).toUpperCase()}</div><div className="min-w-0"><strong className="text-sm">{w.guest_name}</strong><p className="mt-1 text-sm leading-6 text-muted-foreground">{w.message}</p></div><Heart size={16} className="mt-1 text-accent"/></div>) : <p className="text-center text-sm text-muted-foreground">Hãy là người đầu tiên gửi lời chúc đến hai chúng mình.</p>}</div></section>
 
